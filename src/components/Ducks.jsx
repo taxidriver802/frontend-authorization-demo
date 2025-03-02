@@ -1,10 +1,16 @@
 import NavBar from "./NavBar";
 import DuckList from "./DuckList";
 
-function Ducks() {
+/* import { setIsLoggedIn } from "../utils/token"; */
+
+function Ducks(
+  {
+    /* setIsLoggedIn */
+  }
+) {
   return (
     <>
-      <NavBar />
+      <NavBar /* setIsLoggedIn={setIsLoggedIn} */ />
       <DuckList />
     </>
   );

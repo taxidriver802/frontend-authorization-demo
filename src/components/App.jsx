@@ -14,13 +14,13 @@ import Register from "./Register";
 import ProtectedRoute from "./ProtectedRoute";
 import "./styles/App.css";
 
-import { setToken, getToken } from "../utils/token";
+import { setToken, getToken, removeToken } from "../utils/token";
 import { getUserInfo } from "../utils/api";
 
 import * as auth from "../utils/auth";
 import * as api from "../utils/api";
 
-function App(getUserInfo) {
+function App() {
   const [userData, setUserData] = useState({ username: "", email: "" });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -75,54 +75,57 @@ function App(getUserInfo) {
   }, []);
 
   return (
-    <Routes>
-      <Route
-        path="/ducks"
-        element={
-          <ProtectedRoute isLoggedIn={isLoggedIn}>
-            <Ducks />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/my-profile"
-        element={
-          <ProtectedRoute isLoggedIn={isLoggedIn}>
-            <MyProfile userData={userData} />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/login"
-        element={
-          <ProtectedRoute isLoggedIn={isLoggedIn} anonymous>
-            <div className="loginContainer">
-              <Login handleLogin={handleLogin} />
-            </div>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/register"
-        element={
-          <ProtectedRoute isLoggedIn={isLoggedIn} anonymous>
-            <div className="registerContainer">
-              <Register handleRegister={handleRegister} />
-            </div>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="*"
-        element={
-          isLoggedIn ? (
-            <Navigate to="/ducks" replace />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        }
-      />
-    </Routes>
+    <>
+      <NavBar setIsLoggedIn={setIsLoggedIn} navigate={navigate} />
+      <Routes>
+        <Route
+          path="/ducks"
+          element={
+            <ProtectedRoute isLoggedIn={isLoggedIn}>
+              <Ducks />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-profile"
+          element={
+            <ProtectedRoute isLoggedIn={isLoggedIn}>
+              <MyProfile userData={userData} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <ProtectedRoute isLoggedIn={isLoggedIn} anonymous>
+              <div className="loginContainer">
+                <Login handleLogin={handleLogin} />
+              </div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <ProtectedRoute isLoggedIn={isLoggedIn} anonymous>
+              <div className="registerContainer">
+                <Register handleRegister={handleRegister} />
+              </div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="*"
+          element={
+            isLoggedIn ? (
+              <Navigate to="/ducks" replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+      </Routes>
+    </>
   );
 }
 
