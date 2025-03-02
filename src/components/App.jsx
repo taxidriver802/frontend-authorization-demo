@@ -1,5 +1,12 @@
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import {
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
+import { useState, useEffect } from "react";
+
 import Ducks from "./Ducks";
 import Login from "./Login";
 import MyProfile from "./MyProfile";
@@ -7,12 +14,18 @@ import Register from "./Register";
 import ProtectedRoute from "./ProtectedRoute";
 import "./styles/App.css";
 
-import * as auth from "../utils/auth";
+import { setToken, getToken } from "../utils/token";
+import { getUserInfo } from "../utils/api";
 
-function App() {
+import * as auth from "../utils/auth";
+import * as api from "../utils/api";
+
+function App(getUserInfo) {
+  const [userData, setUserData] = useState({ username: "", email: "" });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleRegister = ({ username, email, password, confirmPassword }) => {
     if (password === confirmPassword) {
@@ -24,6 +37,42 @@ function App() {
         .catch((err) => console.error(err));
     }
   };
+
+  const handleLogin = ({ username, password }) => {
+    if (!username || !password) {
+      return;
+    }
+
+    auth
+      .authorize(username, password)
+      .then((data) => {
+        if (data.jwt) {
+          setToken(data.jwt);
+          setUserData(data.user);
+          setIsLoggedIn(true);
+          const redirectPath =
+            location.state?.from?.pathname || navigate(redirectPath);
+        }
+      })
+      .catch((err) => console.error(err));
+  };
+
+  useEffect(() => {
+    const jwt = getToken();
+
+    if (!jwt) {
+      return;
+    }
+
+    api
+      .getUserInfo(jwt)
+      .then(({ username, email }) => {
+        setIsLoggedIn(true);
+        setUserData({ username, email });
+        navigate("/ducks");
+      })
+      .catch(console.error);
+  }, []);
 
   return (
     <Routes>
@@ -39,24 +88,28 @@ function App() {
         path="/my-profile"
         element={
           <ProtectedRoute isLoggedIn={isLoggedIn}>
-            <MyProfile />
+            <MyProfile userData={userData} />
           </ProtectedRoute>
         }
       />
       <Route
         path="/login"
         element={
-          <div className="loginContainer">
-            <Login />
-          </div>
+          <ProtectedRoute isLoggedIn={isLoggedIn} anonymous>
+            <div className="loginContainer">
+              <Login handleLogin={handleLogin} />
+            </div>
+          </ProtectedRoute>
         }
       />
       <Route
         path="/register"
         element={
-          <div className="registerContainer">
-            <Register handleRegister={handleRegister} />
-          </div>
+          <ProtectedRoute isLoggedIn={isLoggedIn} anonymous>
+            <div className="registerContainer">
+              <Register handleRegister={handleRegister} />
+            </div>
+          </ProtectedRoute>
         }
       />
       <Route
